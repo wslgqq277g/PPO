@@ -3,24 +3,24 @@ from dexpoint.real_world import lab
 import numpy as np
 
 # Camera config
-# CAMERA_CONFIG = {
-#     "relocate": {
-#         "relocate": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640,480),
-#                          ), },
-#     "viz_only": {  # only for visualization (human), not for visual observation
-#         "relocate_viz": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
-#         "door_viz": dict(position=np.array([-0.6, -0.3, 0.8]), look_at_dir=np.array([0.6, 0.3, -0.8]),
-#                          right_dir=np.array([1, -2, 0]), fov=np.deg2rad(69.4), resolution=(640, 480))},
-# }
 CAMERA_CONFIG = {
     "relocate": {
-        "relocate": dict(pose1=lab.ROBOT2BASE,pose2= lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640,480),
+        "relocate": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640,480),
                          ), },
     "viz_only": {  # only for visualization (human), not for visual observation
-        "relocate_viz": dict(pose1=lab.ROBOT2BASE,pose2= lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
+        "relocate_viz": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
         "door_viz": dict(position=np.array([-0.6, -0.3, 0.8]), look_at_dir=np.array([0.6, 0.3, -0.8]),
                          right_dir=np.array([1, -2, 0]), fov=np.deg2rad(69.4), resolution=(640, 480))},
 }
+# CAMERA_CONFIG = {
+#     "relocate": {
+#         "relocate": dict(pose1=lab.ROBOT2BASE,pose2= lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640,480),
+#                          ), },
+#     "viz_only": {  # only for visualization (human), not for visual observation
+#         "relocate_viz": dict(pose1=lab.ROBOT2BASE,pose2= lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
+#         "door_viz": dict(position=np.array([-0.6, -0.3, 0.8]), look_at_dir=np.array([0.6, 0.3, -0.8]),
+#                          right_dir=np.array([1, -2, 0]), fov=np.deg2rad(69.4), resolution=(640, 480))},
+# }
 
 # Observation config type
 OBS_CONFIG = {

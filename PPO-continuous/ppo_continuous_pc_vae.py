@@ -8,7 +8,6 @@ from model.VAE import AutoencoderPN, depth_to_point_cloud
 import numpy as np
 from model.point_net import EncoderDecoder
 
-
 # Trick 8: orthogonal initialization
 def orthogonal_init(layer, gain=1.0):
     nn.init.orthogonal_(layer.weight, gain=gain)
@@ -288,7 +287,8 @@ class PPO_continuous_pc(nn.Module):
                 adv = ((adv - adv.mean()) / (adv.std() + 1e-5))
 
         # Optimize policy for K epochs:
-        for _ in range(self.K_epochs):
+        for i in range(self.K_epochs):
+
             # Random sampling and no repetition. 'False' indicates that training will continue even if the number of samples in the last time is less than mini_batch_size
             for index in BatchSampler(SubsetRandomSampler(range(self.batch_size)), self.mini_batch_size, False):
                 # s, a, a_logprob, r, s_, dw, done
@@ -353,8 +353,6 @@ class PPO_continuous_pc(nn.Module):
 
                 _, v_s = self.AC(state_f_all)
                 critic_loss = F.mse_loss(v_target[index], v_s)
-                for i in [pc_recon_coarse,pc_recon,pc_origi]:
-                    print(i.shape)
                 chamfer_l = ChamLoss(pc_recon_coarse,pc_recon,pc_origi,0.3)
                 loss = -torch.min(surr1, surr2) + self.critic_coef * critic_loss - \
                        self.entropy_coef * dist_entropy + self.cham_coef * chamfer_l  # Trick 5: policy entropy

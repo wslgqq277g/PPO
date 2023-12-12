@@ -15,11 +15,13 @@ import sys
 import open3d as o3d
 import wandb
 from PIL import Image
-from keras import backend as K
 from icecream import ic
-
+import time
 sys.path.append(os.path.join(os.getcwd(), '..'))
 from dexpoint.real_world import task_setting
+import logging
+
+# 配置 logging 模块
 
 ic.disable()
 
@@ -44,54 +46,6 @@ def depth_to_point_cloud(depth_map, camera_matrix):
     return point_cloud
 
 
-def array_to_img(x, data_format=None, scale=True):
-    """Converts a 3D Numpy array to a PIL Image instance.
-
-    # Arguments
-        x: Input Numpy array.
-        data_format: Image data format.
-        scale: Whether to rescale image values
-            to be within [0, 255].
-
-    # Returns
-        A PIL Image instance.
-
-    # Raises
-        ImportError: if PIL is not available.
-        ValueError: if invalid `x` or `data_format` is passed.
-    """
-    # if pil_image is None:
-    #     raise ImportError('Could not import PIL.Image. '
-    #                       'The use of `array_to_img` requires PIL.')
-    x = np.asarray(x, dtype=K.floatx())
-    if x.ndim != 3:
-        raise ValueError('Expected image array to have rank 3 (single image). '
-                         'Got array with shape:', x.shape)
-
-    if data_format is None:
-        data_format = K.image_data_format()
-    if data_format not in {'channels_first', 'channels_last'}:
-        raise ValueError('Invalid data_format:', data_format)
-
-    # Original Numpy array x has format (height, width, channel)
-    # or (channel, height, width)
-    # but target PIL image has format (width, height, channel)
-    if data_format == 'channels_first':
-        x = x.transpose(1, 2, 0)
-    if scale:
-        x = x + max(-np.min(x), 0)
-        x_max = np.max(x)
-        if x_max != 0:
-            x /= x_max
-        x *= 255
-    if x.shape[2] == 3:
-        # RGB
-        return Image.fromarray(x.astype('uint8'), 'RGB')
-    elif x.shape[2] == 1:
-        # grayscale
-        return Image.fromarray(x[:, :, 0].astype('uint8'), 'L')
-    else:
-        raise ValueError('Unsupported channel number: ', x.shape[2])
 
 
 def evaluate_policy(args, env, agent, state_norm):
@@ -189,6 +143,7 @@ def main(args, seed):
     # base_env.viewer.set_camera_xyz(x=-1, y=0, z=1)
     # base_env.viewer.set_camera_rpy(r=0, p=-np.arctan2(4, 2), y=0)
     # env.render()
+    init_time=time.time()
     while total_steps < args.max_train_steps:
         best_reward = -9999999999999999999
         s = env.reset()
@@ -256,17 +211,23 @@ def main(args, seed):
                 evaluate_reward = evaluate_policy(args, env_evaluate, agent, None)
 
                 print("evaluate_num:{} \t evaluate_reward:{} \t".format(evaluate_num, evaluate_reward))
+                logging.info("evaluate_num:{} \t evaluate_reward:{} \t".format(evaluate_num, evaluate_reward))
                 wandb.log({'evaluate_reward': evaluate_reward})
                 wandb.log({'evaluate_num': evaluate_num})
                 writer.add_scalar('step_rewards', evaluate_reward, global_step=total_steps)
+
                 if evaluate_reward >= best_reward:
                     # #print()
                     # #print(next(agent.critic.parameters()).data[0],'11')
                     print("evaluate_num:{} \t evaluate_best_reward:{} \t".format(evaluate_num, evaluate_reward))
+                    logging.info("evaluate_num:{} \t evaluate_best_reward:{} \t".format(evaluate_num, evaluate_reward))
                     wandb.log({'evaluate_best_reward': evaluate_reward})
                     agent.save(os.path.join(save_dir, 'best'))
                     best_reward = evaluate_reward
-
+                eval_time=time.time()
+                cost_time=eval_time-init_time
+                print(f'eval_cost time: {cost_time}s')
+                logging.info(f'eval_cost time: {cost_time}s')
                 """save pc"""
 
             if total_steps % args.save_freq == 0:
@@ -283,8 +244,8 @@ if __name__ == '__main__':
                         help="Evaluate the policy every 'evaluate_freq' steps")
     parser.add_argument("--save_freq", type=int, default=1000, help="Save frequency")
     parser.add_argument("--policy_dist", type=str, default="Gaussian", help="Beta or Gaussian")
-    parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    parser.add_argument("--mini_batch_size", type=int, default=2, help="Minibatch size")
+    parser.add_argument("--batch_size", type=int, default=1536, help="Batch size")
+    parser.add_argument("--mini_batch_size", type=int, default=48, help="Minibatch size")
     # parser.add_argument("--batch_size", type=int, default=2048, help="Batch size")
     # parser.add_argument("--mini_batch_size", type=int, default=64, help="Minibatch size")
 
@@ -311,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument("--cham_coef", type=float, default=2, help="Trick 5: policy entropy")#==1 chamfer_loss=1.7
 
 
-    parser.add_argument("--state_coef", type=float, default=50, help="Trick 5: policy entropy")
+    parser.add_argument("--state_coef", type=float, default=200, help="Trick 5: policy entropy")
     #state mean:   encoding:4.5e-5  s_state 0.03 s_oracle 0.05
     parser.add_argument("--use_lr_decay", type=bool, default=True, help="Trick 6:learning rate Decay")
     parser.add_argument("--use_grad_clip", type=bool, default=True, help="Trick 7: Gradient clip")
@@ -326,13 +287,16 @@ if __name__ == '__main__':
     parser.add_argument("--class_num", type=int, default=9, help="Trick 10: tanh activation function")
 
     args = parser.parse_args()
+    filename=f'ppo+vae_cham_{args.cham_coef}_state_{args.state_coef}_oripc_{args.use_ori_obs}'
     wandb.init(
         # set the wandb project where this run will be slogged
         project="PPO",
-        name=f'ppo+vae_cham_{args.cham_coef}_state_{args.state_coef}_oripc_{args.use_ori_obs}',
+        name=filename,
         # track hyperparameters and run metadata
         config=args
     )
+    logging.basicConfig(filename=filename, filemode='w', level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     main(args, seed=args.seed)
     # args.use_adv_norm=False
