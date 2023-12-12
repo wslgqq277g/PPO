@@ -1,3 +1,6 @@
+"""
+Describe:
+"""
 import torch
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
@@ -11,10 +14,15 @@ import sys
 # sys.path.append('../..')
 import open3d as o3d
 import wandb
-sys.path.append(os.path.join(os.getcwd(), '..'))
-from dexpoint.real_world import task_setting
 from PIL import Image
 from keras import backend as K
+from icecream import ic
+
+sys.path.append(os.path.join(os.getcwd(), '..'))
+from dexpoint.real_world import task_setting
+
+ic.disable()
+
 
 def depth_to_point_cloud(depth_map, camera_matrix):
     # 获取深度图像的高度和宽度
@@ -298,11 +306,13 @@ if __name__ == '__main__':
     parser.add_argument("--use_reward_scaling", type=bool, default=True, help="Trick 4:reward scaling")
 
     # loss/state coefficient
-    parser.add_argument("--critic_coef", type=float, default=0.5, help="critic coef")
-    parser.add_argument("--entropy_coef", type=float, default=0.01, help="Trick 5: policy entropy")
-    parser.add_argument("--cham_coef", type=float, default=1, help="Trick 5: policy entropy")
-    parser.add_argument("--state_coef", type=float, default=1, help="Trick 5: policy entropy")
+    parser.add_argument("--critic_coef", type=float, default=0.5, help="critic coef")#==1 critic_loss=17.02
+    parser.add_argument("--entropy_coef", type=float, default=0.01, help="Trick 5: policy entropy")#==1 entropy_loss=17.08
+    parser.add_argument("--cham_coef", type=float, default=2, help="Trick 5: policy entropy")#==1 chamfer_loss=1.7
 
+
+    parser.add_argument("--state_coef", type=float, default=50, help="Trick 5: policy entropy")
+    #state mean:   encoding:4.5e-5  s_state 0.03 s_oracle 0.05
     parser.add_argument("--use_lr_decay", type=bool, default=True, help="Trick 6:learning rate Decay")
     parser.add_argument("--use_grad_clip", type=bool, default=True, help="Trick 7: Gradient clip")
     parser.add_argument("--use_orthogonal_init", type=bool, default=True, help="Trick 8: orthogonal initialization")

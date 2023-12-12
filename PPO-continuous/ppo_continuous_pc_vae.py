@@ -221,7 +221,6 @@ class PPO_continuous_pc(nn.Module):
 
                 encoding, coarse,restoration,_ = self.vae(s_camera_pc.unsqueeze(0))
                 state_f = torch.concat((encoding.squeeze(0)*self.state_coef, s_state, s_oracle), dim=0)
-
                 state_f = torch.unsqueeze(state_f, 0).to(self.device)
 
                 if index == 0:
@@ -359,9 +358,6 @@ class PPO_continuous_pc(nn.Module):
                 chamfer_l = ChamLoss(pc_recon_coarse,pc_recon,pc_origi,0.3)
                 loss = -torch.min(surr1, surr2) + self.critic_coef * critic_loss - \
                        self.entropy_coef * dist_entropy + self.cham_coef * chamfer_l  # Trick 5: policy entropy
-                print(chamfer_l.item(),'chamfer_loss')
-                print(critic_loss.item(),'critic_loss')
-                print(dist_entropy.item(),'entropy')
                 # Update actor
                 self.optimizer_AC.zero_grad()
                 loss.mean().backward()
