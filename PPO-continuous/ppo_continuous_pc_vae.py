@@ -326,8 +326,8 @@ class PPO_continuous_pc(nn.Module):
                         point_cloud = point_cloud[point_list]
 
 
-                    s_camera_pc = torch.tensor(point_cloud,dtype=torch.float32).to(self.device)
-                    encoding, coarse,restoration,_ = self.vae(s_camera_pc.unsqueeze(0))
+                    s_camera_pc = torch.tensor(point_cloud,dtype=torch.float32).to(self.device).unsqueeze(0)
+                    encoding, coarse,restoration,_ = self.vae(s_camera_pc)
                     state_f = torch.concat((encoding.squeeze(0)*self.state_coef, s_state, s_oracle), dim=0)
                     state_f = torch.unsqueeze(state_f, 0).to(self.device)
                     if order == 0:
