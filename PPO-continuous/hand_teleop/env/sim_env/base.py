@@ -213,7 +213,7 @@ class BaseSimulationEnv(object):
         sapien2opencv = np.array([[0, -1, 0], [0, 0, -1], [1, 0, 0]])
         sapien2opencv_quat = transforms3d.quaternions.mat2quat(sapien2opencv)
         pose_cam = pose * sapien.Pose(q=sapien2opencv_quat)
-        print(type(self.scene))
+        # print(type(self.scene))
         # print(self.scene.__slots__)
         cam = self.scene.add_camera(name, width=resolution[0], height=resolution[1], fovy=fov, near=0.1, far=10)
         cam.set_local_pose(pose_cam)

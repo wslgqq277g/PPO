@@ -20,7 +20,7 @@ MAX_DEPTH_RANGE = 2.5
 #     p=np.array([0, 0, 0]),
 #     q=np.array([1, 0, 0, 0]))
 
-gl2sapien = sapien.Pose(q=np.array([0.5, 0.5, -0.5, -0.5]))
+gl2sapien = sapien.Pose(q=np.array([0.5, 0.5, 0.5, -0.5]))
 # gl2sapien = sapien.Pose(q=np.array([1, 0, 0, 0]))
 
 
@@ -268,6 +268,18 @@ class BaseRLEnv(BaseSimulationEnv, gym.Env):
         if self.init_state is not None:
             self.scene.unpack(self.init_state)
         self.reset_env()
+
+        ''' in relocate_env.py
+            def reset_env(self):
+            pose = self.generate_random_object_pose(self.randomness_scale)
+            # print(pose,'qqqqqqq')
+            self.manipulated_object.set_pose(pose)
+    
+            # Target pose
+            pose = self.generate_random_target_pose(self.randomness_scale)
+            self.target_object.set_pose(pose)
+            self.target_pose = pose    
+        '''
         if self.init_state is None:
             self.init_state = self.scene.pack()
 
@@ -577,7 +589,8 @@ class BaseRLEnv(BaseSimulationEnv, gym.Env):
                 for img_name, points in self.imaginations.items():
                     num_points = points.shape[0]
                     obs_dict[img_name] = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(num_points, 3))
-
+            # print('obs_dict:', obs_dict)
+            # breakpoint()
             return gym.spaces.Dict(obs_dict)
 
 

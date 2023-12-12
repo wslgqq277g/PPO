@@ -37,6 +37,7 @@ class InspireRelocateRLEnv(RelocateEnv, BaseRLEnv):
 
     def get_oracle_state(self):
         robot_qpos_vec = self.robot.get_qpos()
+
         object_pose = self.object_episode_init_pose if self.constant_object_state else self.manipulated_object.get_pose()
         object_pose_vec = np.concatenate([object_pose.p, object_pose.q])
         palm_pose = self.palm_link.get_pose()
@@ -46,6 +47,11 @@ class InspireRelocateRLEnv(RelocateEnv, BaseRLEnv):
         palm_v = self.palm_link.get_velocity()
         palm_w = self.palm_link.get_angular_velocity()
         theta = np.arccos(np.clip(np.power(np.sum(object_pose.q * self.target_pose.q), 2) * 2 - 1, -1 + 1e-8, 1 - 1e-8))
+        list_a=[robot_qpos_vec, object_pose_vec, palm_v, palm_w, object_in_palm, target_in_palm, target_in_object,
+             self.target_pose.q, np.array([theta])]
+        for index,i in  enumerate(list_a):
+            print(i.shape)
+        breakpoint()
         return np.concatenate(
             [robot_qpos_vec, object_pose_vec, palm_v, palm_w, object_in_palm, target_in_palm, target_in_object,
              self.target_pose.q, np.array([theta])])

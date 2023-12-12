@@ -1,7 +1,9 @@
+"""
+hello
+"""
 import numpy as np
 import sapien.core as sapien
 import transforms3d
-
 from hand_teleop.env.sim_env.base import BaseSimulationEnv
 from hand_teleop.real_world import lab
 from hand_teleop.utils.render_scene_utils import set_entity_color
@@ -9,9 +11,14 @@ from hand_teleop.utils.ycb_object_utils import load_ycb_object, YCB_SIZE, YCB_OR
 
 
 class RelocateEnv(BaseSimulationEnv):
+    """
+    Dataset Config
+    """
+
     def __init__(self, use_gui=True, frame_skip=5, object_category="YCB", object_name="tomato_soup_can",
                  object_scale=1.0, randomness_scale=1, friction=1, use_visual_obs=False, **renderer_kwargs):
-        super().__init__(use_gui=use_gui, frame_skip=frame_skip, use_visual_obs=use_visual_obs, **renderer_kwargs)
+        super(RelocateEnv, self).__init__(use_gui=use_gui, frame_skip=frame_skip,
+                                          use_visual_obs=use_visual_obs, **renderer_kwargs)
 
         # Object info
         self.object_category = object_category
@@ -66,6 +73,7 @@ class RelocateEnv(BaseSimulationEnv):
 
     def reset_env(self):
         pose = self.generate_random_object_pose(self.randomness_scale)
+        # print(pose,'qqqqqqq')
         self.manipulated_object.set_pose(pose)
 
         # Target pose
@@ -81,8 +89,6 @@ def env_test():
     env.reset_env()
     viewer = Viewer(env.renderer)
     viewer.set_scene(env.scene)
-
-
 
     add_default_scene_light(env.scene, env.renderer)
     env.viewer = viewer

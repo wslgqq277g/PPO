@@ -44,10 +44,8 @@ class ReplayBuffer_PC:
         self.done = np.zeros((args.batch_size, 1))
         self.count = 0
         """
-        if set args.use_visualize_obs==True,s will be a dict instead of numpy array
-        in this scenario using list to store s otherwise np.zeros
+        s,s_ modify --->pc list
         """
-
         self.s =[1 for _ in range(args.batch_size)]
         self.s_ =[1 for _ in range(args.batch_size)]
 

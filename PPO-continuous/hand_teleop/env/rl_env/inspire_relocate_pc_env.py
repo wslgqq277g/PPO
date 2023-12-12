@@ -14,6 +14,10 @@ from hand_teleop.env.sim_env.relocate_env import RelocateEnv
 from hand_teleop.real_world import lab
 
 OBJECT_LIFT_LOWER_LIMIT = -0.03
+import numpy as np
+from scipy.spatial.transform import Rotation
+
+# 生成随机角度
 
 
 class InspireRelocateRLEnv(RelocateEnv, BaseRLEnv):
@@ -33,8 +37,16 @@ class InspireRelocateRLEnv(RelocateEnv, BaseRLEnv):
         self.palm_link_name = self.robot_info.palm_name
         self.palm_link = [link for link in self.robot.get_links() if link.get_name() == self.palm_link_name][0]
 
+        random_angle = np.random.uniform(90, 180)
+        # print(random_angle,'a')
+        # 创建四元数
+        quaternion = Rotation.from_euler('z', [random_angle], degrees=False).as_quat()
+
+        # print("Random Angle:", random_angle)
+        # print("Quaternion:", quaternion)
+
         # Object init pose
-        self.object_episode_init_pose = sapien.Pose()
+        self.object_episode_init_pose = sapien.Pose(q=quaternion[0])
 
         # real DOF
         self.real_dof = 12
@@ -110,17 +122,15 @@ class InspireRelocateRLEnv(RelocateEnv, BaseRLEnv):
         q_initial = np.array([ 0, 0, 0, 0, 0, 0,
                                 0, 0.396, 0, 0.396, 0, 0.396,
                                 0, 0.396, -1.24, -0.48, 0.2393, -0.16])
-
-
-        # [-1.63, -1.48, -1.24, -0.48, -0.54, -0.758, ]
-        # [  0.0,   0.4,  0.36,  0.2,  0.241, -0.158,]
-        # ['E',     'F',   'D',   'A',   'B',   'C']
+        random_angle = np.random.uniform(0, 180)
+        quaternion = Rotation.from_euler('x', [random_angle],degrees=True).as_quat()[0]
         self.robot.set_qpos(q_initial)
-        self.object_episode_init_pose = self.manipulated_object.get_pose()
-        random_quat = transforms3d.euler.euler2quat(*(self.np_random.randn(3) * self.object_pose_noise * 10))
-        random_pos = self.np_random.randn(3) * self.object_pose_noise
-        self.object_episode_init_pose = self.object_episode_init_pose * sapien.Pose(random_pos, random_quat)
-        # print(self.object_episode_init_pose)
+
+        position=self.manipulated_object.get_pose().p
+        pose = sapien.Pose(p=position,q=quaternion)
+
+        self.manipulated_object.set_pose(pose)
+
         return self.get_observation()
 
 
@@ -148,7 +158,7 @@ class InspireRelocateRLEnv(RelocateEnv, BaseRLEnv):
             print(self.robot.dof,'dof')
             return self.robot.dof + 7 + 6 + 9 + 4 + 1
         else:
-            print(self.get_robot_state().shape,'robot_state')
+            # print(self.get_robot_state().shape,'robot_state')
             return len(self.get_robot_state())
     # def get_robot_state(self):
     #     robot_qpos_vec = self.robot.get_qpos()
@@ -179,42 +189,13 @@ def main_env():
     base_env.viewer.set_camera_rpy(r=0, p=-np.arctan2(4, 2), y=0)
 
 
-    # for i in range(100):
-    #     env.reset()
-    #     env.render()
-    #     time.sleep(1)
 
     # viewer.toggle_pause(True)
     for i in range(5000):
-        # print(i)
-        # print(robot_dof)
-        action = np.zeros(robot_dof)
-        # action = np.array([0, 0, 0, 0, 0, 0,
-        #                    1, 0, 1, 0, 1, 0,
-        #                    1, 0, 1, -1, 0, 0])
 
         action = np.array([0, 0, 0, 0, 0, 0,
                            1, 0, 1, 0, 1, 0,
                            1, 0, -1, -1, 0, 0])
-        # action[15] = 1 - i*0.001
-
-        # action[12] = -0.5
-        # action[14] = -0.5
-        # action[15] = -0.5
-        # action[0] = 0.1
-        # action[1] = -0.1
-        # action[1] = 0.005
-        # action[14] = 0.5
-        # self.activate_joint_index = [6, 8, 10, 12, 14, 15]
-        # self.coupled_joint_index = [7, 9, 11, 13, 16, 17]
-        # action[1] =0.01
-        # action[[6, 8, 10, 12]] = 0
-        # action[14] = 0.1
-        # action[15] = 0
-        # action[12] = -1
-        # assert 0
-        # action[2] =0.01
-        # action[1] = i * 0.02
         obs, reward, done, _ = env.step(action)
         print('obs:')
         print(obs[:robot_dof])

@@ -3,12 +3,21 @@ from dexpoint.real_world import lab
 import numpy as np
 
 # Camera config
+# CAMERA_CONFIG = {
+#     "relocate": {
+#         "relocate": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640,480),
+#                          ), },
+#     "viz_only": {  # only for visualization (human), not for visual observation
+#         "relocate_viz": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
+#         "door_viz": dict(position=np.array([-0.6, -0.3, 0.8]), look_at_dir=np.array([0.6, 0.3, -0.8]),
+#                          right_dir=np.array([1, -2, 0]), fov=np.deg2rad(69.4), resolution=(640, 480))},
+# }
 CAMERA_CONFIG = {
     "relocate": {
-        "relocate": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(64, 64),
+        "relocate": dict(pose1=lab.ROBOT2BASE,pose2= lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640,480),
                          ), },
     "viz_only": {  # only for visualization (human), not for visual observation
-        "relocate_viz": dict(pose=lab.ROBOT2BASE * lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
+        "relocate_viz": dict(pose1=lab.ROBOT2BASE,pose2= lab.CAM2ROBOT, fov=np.deg2rad(69.4), resolution=(640, 480), ),
         "door_viz": dict(position=np.array([-0.6, -0.3, 0.8]), look_at_dir=np.array([0.6, 0.3, -0.8]),
                          right_dir=np.array([1, -2, 0]), fov=np.deg2rad(69.4), resolution=(640, 480))},
 }
@@ -16,16 +25,39 @@ CAMERA_CONFIG = {
 # Observation config type
 OBS_CONFIG = {
     "relocate": {
-        "relocate": {"point_cloud": {"process_fn": process_relocate_pc, "num_points": 512}},
+        "relocate": {
+                    "depth": {"process_fn": process_relocate_pc, "num_points": 512},
+                     "rgb": {"process_fn": process_relocate_pc, "num_points": 512}},
+                    "segmentation": {"process_fn": process_relocate_pc, "num_points": 512}
     },
     "relocate_noise": {
         "relocate": {
-            "point_cloud": {"process_fn": process_relocate_pc_noise, "num_points": 512, "pose_perturb_level": 0.5,
+                    "depth": {"process_fn": process_relocate_pc_noise,
+                                    "num_points": 512,
+                                    "pose_perturb_level": 0.5,
+                                    "process_fn_kwargs": {"noise_level": 0.5}},
+                    "rgb": {"process_fn": process_relocate_pc_noise,
+                            "num_points": 512,
+                            "pose_perturb_level": 0.5,
                             "process_fn_kwargs": {"noise_level": 0.5}},
-        },
-    }
+                    "segmentation": {"process_fn": process_relocate_pc_noise,
+                            "num_points": 512,
+                            "pose_perturb_level": 0.5,
+                            "process_fn_kwargs": {"noise_level": 0.5}},
+        }
+        }
 }
-
+# OBS_CONFIG = {
+#     "relocate": {
+#         "relocate": {"rgb": {"process_fn": process_relocate_pc, "num_points": 512}},
+#     },
+#     "relocate_noise": {
+#         "relocate": {
+#             "rgb": {"process_fn": process_relocate_pc_noise, "num_points": 512, "pose_perturb_level": 0.5,
+#                             "process_fn_kwargs": {"noise_level": 0.5}},
+#         },
+#     }
+# }
 # Imagination config type
 IMG_CONFIG = {
     "relocate_goal_only": {

@@ -96,6 +96,7 @@ class RelocateRLEnv(RelocateEnv, BaseRLEnv):
         random_quat = transforms3d.euler.euler2quat(*(self.np_random.randn(3) * self.object_pose_noise * 10))
         random_pos = self.np_random.randn(3) * self.object_pose_noise
         self.object_episode_init_pose = self.object_episode_init_pose * sapien.Pose(random_pos, random_quat)
+
         return self.get_observation()
 
     @cached_property
