@@ -226,13 +226,14 @@ def main(args, seed):
                     best_reward = evaluate_reward
                 eval_time=time.time()
                 cost_time=eval_time-init_time
+
                 print(f'eval_cost time: {cost_time}s')
                 logging.info(f'eval_cost time: {cost_time}s')
                 """save pc"""
 
             if total_steps % args.save_freq == 0:
                 agent.save(os.path.join(save_dir, f'_{total_steps}'))
-
+            init_time=time.time()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Hyperparameters Setting for PPO-continuous")
